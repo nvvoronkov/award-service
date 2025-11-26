@@ -1,9 +1,42 @@
+version: '3.9'
+
 services:
+
   postgres:
-    image: 'postgres:latest'
+    image: postgres:15
+    container_name: awards_postgres
     environment:
-      - 'POSTGRES_DB=mydatabase'
-      - 'POSTGRES_PASSWORD=secret'
-      - 'POSTGRES_USER=myuser'
+      POSTGRES_DB: awards_db
+      POSTGRES_USER: awards_user
+      POSTGRES_PASSWORD: secret
     ports:
-      - '5432'
+      - "5432:5432"
+    volumes:
+      - awards_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U awards_user -d awards_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  app:
+    build: .
+    container_name: awards_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_FLYWAY_URL: jdbc:postgresql://postgres:5432/awards_db
+      SPRING_FLYWAY_USER: awards_user
+      SPRING_FLYWAY_PASSWORD: secret
+
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/awards_db
+      SPRING_R2DBC_USERNAME: awards_user
+      SPRING_R2DBC_PASSWORD: secret
+
+    ports:
+      - "8080:8080"
+    restart: always
+
+volumes:
+  awards_pgdata:

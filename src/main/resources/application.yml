@@ -1,0 +1,12 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/awards_db
+    username: awards_user
+    password: secret
+
+  flyway:
+    enabled: true
+    url: jdbc:postgresql://localhost:5432/awards_db
+    user: awards_user
+    password: secret
+    locations: classpath:db/migration
