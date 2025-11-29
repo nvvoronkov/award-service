@@ -61,7 +61,11 @@ public class AwardImportController {
             return Mono.just(ResponseEntity
                     .badRequest()
                     .body(new ImportResultDto(0, 0, 0,
-                            List.of(new ImportErrorDto(0, "Unsupported file format")))));
+                            List.of(ImportErrorDto.builder()
+                                            .rowNumber(0)
+                                            .message("Unsupported file format")
+                                    .build())
+                    )));
         }
 
         return importService.importAwards(rowsFlux)

@@ -44,10 +44,11 @@ public class AwardImportService {
                                     total.incrementAndGet();
 
                                     if (!existingIds.contains(row.getEmployeeId())) {
-                                        errors.add(new ImportErrorDto(
-                                                row.getRowNumber(),
-                                                "Employee with id " + row.getEmployeeId() + " not found"
-                                        ));
+                                        errors.add(ImportErrorDto.builder()
+                                                .rowNumber(row.getRowNumber())
+                                                .message("Employee with id " + row.getEmployeeId() + " not found")
+                                                .build()
+                                        );
                                         return Mono.empty();
                                     }
 
@@ -61,10 +62,11 @@ public class AwardImportService {
                                     return awardRepository.save(award)
                                             .doOnSuccess(saved -> imported.incrementAndGet())
                                             .onErrorResume(ex -> {
-                                                errors.add(new ImportErrorDto(
-                                                        row.getRowNumber(),
-                                                        "Error with save award: " + ex.getMessage()
-                                                ));
+                                                errors.add(ImportErrorDto.builder()
+                                                        .rowNumber(row.getRowNumber())
+                                                        .message("Error with save award: " + ex.getMessage())
+                                                        .build()
+                                                );
                                                 return Mono.empty();
                                             });
                                 }
@@ -73,7 +75,12 @@ public class AwardImportService {
                     int totalRows = total.get();
                     int importedRows = imported.get();
                     int skippedRows = totalRows - importedRows;
-                    return new ImportResultDto(totalRows, importedRows, skippedRows, errors);
+                    return ImportResultDto.builder()
+                            .totalRows(totalRows)
+                            .importedRows(importedRows)
+                            .skippedRows(skippedRows)
+                            .errors(errors)
+                            .build();
                 }));
     }
 }
